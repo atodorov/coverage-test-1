@@ -1,0 +1,80 @@
+This is a simple test for coverage.py. The directory layout
+matches my use-case in production and is probably important!
+
+1) cd tests/
+
+If --rcfile is not specified in run_test.sh the result is:
+
+
+./run_test.sh 
+Coverage.py, version 4.0.
+Documentation at https://coverage.readthedocs.org
+----------------------------------
+Hello from /tmp/test1/myanaconda/mod1.py
+Hello from /tmp/test1/mydracut/mod1.py
+----------------------------------
+Name                                Stmts   Miss  Cover
+-------------------------------------------------------
+/tmp/test1/myanaconda/__init__.py       0      0   100%
+/tmp/test1/myanaconda/mod1.py           2      0   100%
+/tmp/test1/mydracut/__init__.py         0      0   100%
+/tmp/test1/mydracut/mod1.py             2      0   100%
+test_everything.py                      4      0   100%
+-------------------------------------------------------
+TOTAL                                   8      0   100%
+
+
+
+In the coverage report only __init__.py and mod1.py files are present which
+is the correct behavior because mod2.py and anaconda are not imported.
+
+
+
+2) When --rcfile is specified and .coveragerc looks like this:
+
+[run]
+source=../
+
+
+the result is:
+
+$ ./run_test.sh 
+Coverage.py, version 4.0.
+Documentation at https://coverage.readthedocs.org
+----------------------------------
+Hello from /tmp/test1/myanaconda/mod1.py
+Hello from /tmp/test1/mydracut/mod1.py
+----------------------------------
+Name                                Stmts   Miss  Cover
+-------------------------------------------------------
+/tmp/test1/myanaconda/__init__.py       0      0   100%
+/tmp/test1/myanaconda/mod1.py           2      0   100%
+/tmp/test1/myanaconda/mod2.py           2      2     0%
+/tmp/test1/mydracut/__init__.py         0      0   100%
+/tmp/test1/mydracut/mod1.py             2      0   100%
+/tmp/test1/mydracut/mod2.py             2      2     0%
+test_everything.py                      4      0   100%
+-------------------------------------------------------
+TOTAL                                  12      4    67%
+
+
+Notice how mod2.py files are reported in the output. However the top-most
+file ./anaconda is not included. According to the documentation:
+
+    Only importable files (ones at the root of the tree, or in directories with
+    a __init__.py file) will be considered...
+
+
+So ./anaconda is at the root of the .. tree but was not considered. BUG!
+
+
+
+3) If you modify the .coveragerc file like this:
+
+[run]
+source=../anaconda,../
+
+
+the result is the same as in 2). ./anaconda was not included in the
+report although it was explicitly specified. BUG!
+
